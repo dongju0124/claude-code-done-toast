@@ -78,32 +78,32 @@ Everything worth changing sits near the top of `done-toast.ps1`.
 
 | What | Where | Notes |
 | --- | --- | --- |
-| Auto-dismiss | `$DISMISS_MS` (line 6) | `0` keeps it up until clicked. Set `5000` for a 5-second toast. |
-| Body text | `$bCodes` (line 12) | Currently Korean for "작업 완료" (*work complete*). |
+| Auto-dismiss | `$DISMISS_MS` | `0` keeps it up until clicked. Set `5000` for a 5-second toast. |
+| Title / body text | `$TITLE_TEXT` / `$BODY_TEXT` | Defaults to `Claude Code` / `Task complete`. See below for non-ASCII. |
 | Accent bar colour | `$accent.BackColor` | Defaults to Claude orange, `RGB(216,122,87)`. |
 | Card size / position | `$form.Width` / `$form.Height` / `$form.Left` / `$form.Top` | Anchored to the working area of whichever monitor the mouse is on. |
 
-### About that `$bCodes` line
+### Changing the text
 
-The body text is built from Unicode code points rather than written literally:
-
-```powershell
-$bCodes = 0xC791,0xC5C5,0x20,0xC644,0xB8CC   # "작업 완료"
-$bodyText = -join ($bCodes | ForEach-Object { [char]$_ })
-```
-
-That looks odd, and it is deliberate. Windows PowerShell 5.1 reads a `.ps1` with no byte-order
-mark as ANSI in the system code page, so non-ASCII string literals turn to mojibake on machines
-whose locale differs from the author's. Code points sidestep the encoding entirely.
-
-If your text is plain ASCII, just write it normally:
+For ASCII, edit the variable directly:
 
 ```powershell
-$bodyText = 'Done'
+$BODY_TEXT = 'All done'
 ```
 
-For anything else, convert each character to `0xXXXX` and keep the existing form. Any online
-"unicode code point converter" will do it.
+**For anything non-ASCII, use Unicode code points instead of a literal.** Windows PowerShell 5.1
+reads a `.ps1` with no byte-order mark as ANSI in the system code page, so a literal like `'完了'`
+or `'작업 완료'` turns to mojibake on any machine whose locale differs from yours. Code points
+sidestep the encoding entirely. The script ships with a commented Korean example:
+
+```powershell
+# Korean: 작업 완료
+$BODY_TEXT = -join (0xC791,0xC5C5,0x20,0xC644,0xB8CC | ForEach-Object { [char]$_ })
+```
+
+Convert each character to `0xXXXX` with any online "unicode code point converter" and keep that
+form. (Saving the file as UTF-8 *with* BOM also works, but the code points survive careless
+editors better.)
 
 ## How it works
 
@@ -166,5 +166,11 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 ### 주의할 점
 
 - **`"async": true`는 필수입니다.** 토스트가 클릭 전까지 안 닫히는 설정이라, 빼면 매 턴마다 Claude Code가 멈춰 있습니다.
-- 자동으로 닫히게 하려면 `done-toast.ps1` 6번 줄 `$DISMISS_MS`를 `5000` 등으로 바꾸세요.
-- 문구는 12번 줄 `$bCodes`에 유니코드 코드포인트로 박혀 있습니다. PowerShell 5.1이 BOM 없는 `.ps1`을 시스템 코드페이지(한국어 환경이면 CP949)로 읽는 탓에, 한글을 그대로 쓰면 다른 로캘에서 깨지기 때문입니다. 영문으로 바꿀 거면 `$bodyText = 'Done'` 처럼 그냥 쓰면 됩니다.
+- 자동으로 닫히게 하려면 스크립트 상단 `$DISMISS_MS`를 `5000` 등으로 바꾸세요.
+- **기본 문구는 영문 `Task complete` 입니다.** 한글로 되돌리려면 상단 `$BODY_TEXT` 아래에 주석으로 들어있는 줄의 `#` 만 지우면 됩니다:
+
+  ```powershell
+  $BODY_TEXT = -join (0xC791,0xC5C5,0x20,0xC644,0xB8CC | ForEach-Object { [char]$_ })
+  ```
+
+  한글을 `$BODY_TEXT = '작업 완료'` 처럼 직접 쓰지 마세요. PowerShell 5.1이 BOM 없는 `.ps1`을 시스템 코드페이지(한국어 환경이면 CP949)로 읽기 때문에, 로캘이 다른 PC에서 깨집니다. 그래서 코드포인트로 넣습니다.

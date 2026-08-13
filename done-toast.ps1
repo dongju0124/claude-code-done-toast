@@ -5,12 +5,18 @@ try { $null = [Console]::In.ReadToEnd() } catch {}   # Stop 페이로드 흡수(
 
 $DISMISS_MS = 0   # 자동 닫힘(ms). 0 이면 클릭 전까지 유지.
 
+# ---- Toast text ------------------------------------------------------------
+$TITLE_TEXT = 'Claude Code'
+$BODY_TEXT  = 'Task complete'
+
+# Korean (작업 완료) - non-ASCII must use code points, because Windows
+# PowerShell 5.1 reads a BOM-less .ps1 in the system code page and would
+# otherwise mangle the literal on machines with a different locale.
+# $BODY_TEXT = -join (0xC791,0xC5C5,0x20,0xC644,0xB8CC | ForEach-Object { [char]$_ })
+# ----------------------------------------------------------------------------
+
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
-
-# title: "Claude Code"  /  body: "작업 완료"
-$bCodes = 0xC791,0xC5C5,0x20,0xC644,0xB8CC
-$bodyText = -join ($bCodes | ForEach-Object { [char]$_ })
 
 Add-Type -WarningAction SilentlyContinue -ReferencedAssemblies System.Windows.Forms -TypeDefinition @"
 using System;
@@ -88,14 +94,14 @@ $accent.BackColor = [System.Drawing.Color]::FromArgb(216,122,87)
 $form.Controls.Add($accent)
 
 $title = New-Object System.Windows.Forms.Label
-$title.Text = 'Claude Code'
+$title.Text = $TITLE_TEXT
 $title.ForeColor = [System.Drawing.Color]::White
 $title.Font = New-Object System.Drawing.Font('Segoe UI', 11, [System.Drawing.FontStyle]::Bold)
 $title.AutoSize = $true; $title.Left = 18; $title.Top = 12
 $form.Controls.Add($title)
 
 $body = New-Object System.Windows.Forms.Label
-$body.Text = $bodyText
+$body.Text = $BODY_TEXT
 $body.ForeColor = [System.Drawing.Color]::Gainsboro
 $body.Font = New-Object System.Drawing.Font('Segoe UI', 10)
 $body.AutoSize = $true; $body.Left = 18; $body.Top = 44

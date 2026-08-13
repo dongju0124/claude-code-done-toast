@@ -1,2 +1,6 @@
 *.bak
 *.bak-*
+
+# Claude Code / oh-my-claudecode session state
+.omc/
+.claude/
