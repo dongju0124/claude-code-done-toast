@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"C:/Users/<YourName>/.claude/hooks/done-toast.ps1\"",
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}
